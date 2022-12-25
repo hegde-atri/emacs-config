@@ -1,0 +1,16 @@
+#+TITLE: Atri Hegde's Emacs config
+#+AUTHOR: Atri Hegde
+
+I am messing around with Emacs for now. Waiting for Emacs 29 to come out before I try to build my config from scratch
+
+* Package management
+** Setup package.el to work with MELPA
+#+begin_src emacs-lisp
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/"))
+(package-refresh-contents)
+(package-initialize)
+#+end_src
+
+** Install use-package
