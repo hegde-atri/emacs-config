@@ -14,7 +14,18 @@ I am messing around with Emacs for now. Waiting for Emacs 29 to come out before 
 (tool-bar-mode -1)        ; disable the toolbar
 (set-fringe-mode 10)      ; give some breathing room
 (menu-bar-mode -1)        ; disable menu bar
+(column-number-mode)
 (setq visible-bell t)     ; enable visible bell
+#+end_src
+** Handle line numbers
+#+begin_src emacs-lisp
+(global-display-line-numbers-mode t)
+(setq display-line-numbers-type 'relative)
+
+;; disable line numbers for some modes
+(dolist (mode '(term-mode-hook
+                eshell-mode-hook))
+  (add-hook mode(lamda () (display-line-numbers-mode 0))))
 #+end_src
 ** Setup font
 #+begin_src emacs-lisp
@@ -22,7 +33,7 @@ I am messing around with Emacs for now. Waiting for Emacs 29 to come out before 
 #+end_src
 ** Set theme
 #+begin_src emacs-lisp
-(load-theme 'wombat)
+;; (load-theme 'wombat)
 #+end_src
 
 * Package management
@@ -44,7 +55,7 @@ I am messing around with Emacs for now. Waiting for Emacs 29 to come out before 
 (require 'use-package)
 (setq use-package-always ensure t)
 #+end_src
-** Ivy
+* Ivy
 #+begin_src emacs-lisp
 (use-package ivy
   :diminish
@@ -64,10 +75,44 @@ I am messing around with Emacs for now. Waiting for Emacs 29 to come out before 
   :config
   (ivy-mode 1))
 #+end_src
+
+* Appearance
+** Theme
+#+begin_src emacs-lisp
+(use-package doom-themes
+  :if window-system
+  :ensure t
+  :config
+  (load-theme 'doom-badger t)
+  (doom-themes-org-config)
+  (doom-themes-visual-bell-config))
+#+end_src
+** Dashboard
+#+begin_src emacs-lisp
+(use-package dashboard
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook)
+  (setq dashboard-startup-banner "~/.emacs.d/splash.png")
+  (setq dashboard-banner-logo-title "Why would you ever leave Emacs?"))
+#+end_src
 ** Doom modeline
 #+begin_src emacs-lisp
 (use-package doom-modeline
   :ensure t
   :init (doom-modeline 1)
   :custom ((doom-modeline-height 15)))
+#+end_src
+** Rainbow delimiters
+#+begin_src emacs-lisp
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
+** Which key
+#+begin_src emacs-lisp
+(use-package which-key
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 0.3))
 #+end_src
