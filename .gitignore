@@ -1,6 +1,6 @@
 *
 !.gitignore
 !init.el
-!config.org
+!emacs.org
 !README.org
 !splash.png

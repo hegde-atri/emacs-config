@@ -1,0 +1,255 @@
+#+title: My Emacs configuration
+#+author: Atri Hegde
+#+description: An org file to describe, document and organise my Emacs configuration.
+
+* Preface
+
+GNU Emacs is not just a text editor, it's the ultimate tool for productivity.
+This document contains my Emacs Configuration which is a main part of my workflow everyday.
+
+* Table of Contents
+:PROPERTIES:
+:TOC:
+:CONTENTS:
+
+:END:
+
+* Startup performance
+
+#+begin_src emacs-lisp
+  ;; -*- lexical-binding: t; -*-
+
+  ;; The default is 800 kilobytes.  Measured in bytes.
+  (setq gc-cons-threshold (* 50 1000 1000))
+
+  ;; Profile emacs startup
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (message "*** Emacs loaded in %s seconds with %d garbage collections."
+                       (emacs-init-time "%.2f")
+                       gcs-done)))
+
+#+end_src
+
+* Native Compilation
+
+Some options to improve experience on the =native-comp= branch of Emacs.
+
+#+begin_src emacs-lisp
+
+  ;; Silence compiler warnings as they can be pretty disruptive
+  (setq native-comp-async-report-warnings-errors nil)
+
+  ;; Set the right directory to store the native comp cache
+  (add-to-list 'native-comp-eln-load-path (expand-file-name "eln-cache/" user-emacs-directory))
+
+#+end_src
+
+* Package management
+
+I manage my Emacs packages using =package.el= and =use-package=
+
+#+begin_src emacs-lisp
+
+  (require 'package)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+  ;; (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
+  ;; (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/packages/") t)
+  (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
+
+  (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents)
+    (package-install 'use-package))
+
+  (require 'use-package)
+  (setq use-package-always-ensure t)
+
+#+end_src
+
+* General Configuration
+
+** User Interface
+
+Making the interface more minimal.
+
+#+begin_src emacs-lisp
+
+  (setq inhibit-startup-message t)
+
+  (tooltip-mode -1)        ; Disable tooltips
+  (menu-bar-mode -1)       ; Disable the menu bar
+  (tool-bar-mode -1)       ; Disable the tool bar
+  (scroll-bar-mode -1)     ; Disable the scrollbar
+  (setq visible-bell nil)  ; Visible bell disabled
+
+#+end_src
+
+Relative line numbers. Really helpful when using evil mode.
+
+#+begin_src emacs-lisp
+
+  (column-number-mode)                       ; Enable column number
+  (global-dislay-line-numbers-mode t)        ; Enable line numbers
+  (setq display-line-numbers 'relative)      ; Make line numbers relative
+  
+#+end_src
+
+
+#+begin_src emacs-lisp
+#+end_src
+
+** Font
+
+My font of choice often varies, but I keep coming back to =JetBrains Mono=.
+
+#+begin_src emacs-lisp
+
+  (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 125)
+  
+#+end_src
+
+Using all-the-icons for pretty icons.
+
+#+begin_src emacs-lisp
+
+  (use-package all-the-icons
+    :ensure t)
+  
+#+end_src
+
+Rainbow delimiters. (attached on any buffer with programming mode)
+
+#+begin_src emacs-lisp
+
+  (use-package rainbow-delimiters
+    :hook (prog-mode . rainbow-delimiters-mode))
+  
+#+end_src
+
+** Theme
+
+I like to use doom themes and occasionally the included themes.
+
+#+begin_src emacs-lisp
+
+  (use-package doom-themes
+    :config
+    (load-theme 'doom-one t))
+  
+#+end_src
+
+** Doom modeline
+
+#+begin_src emacs-lisp
+
+  (use-package doom-modeline
+    :ensure t
+    :init (doom-modeline-mode 1)
+    :custom (
+      (doom-modeline-height 30)))
+  
+#+end_src
+
+* Editing Configuration
+** Tab widths
+
+#+begin_src emacs-lisp
+
+  (setq-default tab-width 2)
+  (setq-default evil-shift-width tab-width)
+  
+#+end_src
+
+** Spaces instead of tabs
+
+#+begin_src emacs-lisp
+
+  (setq-default indent-tabs-mode nil)
+  
+#+end_src
+
+** Commenting lines
+** Automatically clean whitespace
+* Keyboard bindings
+** Escape all
+
+#+begin_src emacs-lisp
+
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  
+#+end_src
+
+** Evil time
+
+#+begin_src emacs-lisp
+#+end_src
+
+** Keybind panel
+
+I am using which-key that helps me discover new keybinds and provides a pretty way to
+rediscover my keybinds.
+
+#+begin_src emacs-lisp
+
+  (use-package which-key
+    :init (which-key-mode)
+    :diminish which-key-mode
+    :config
+    (setq which-key-idle-delay 0.3))
+  
+#+end_src
+
+** Leader keybinds
+
+Easy leader keymaps using =general.el=.
+
+#+begin_src emacs-lisp
+
+  (use-package general
+    :config
+    (general-create-definer ha/leader-key-def
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix "C-SPC"))
+  
+#+end_src
+
+** UI toggles
+
+Keymaps to change UI
+
+#+begin_src emacs-lisp
+
+  (ha/leader-key-def
+   "t"  '(:ignore t :which-key "toggles")
+   "tt" '(counsel-load-theme :which-key "Choose theme"))
+  
+#+end_src
+
+** Keymaps with Hydra
+* Development
+** Git
+
+** Projectile
+** Languages
+
+*** Emacs Lisp
+
+#+begin_src emacs-lisp
+
+  (use-package helpful
+    :custom
+    (counsel-describe-function-function #'helpful-callable)
+    (counsel-describe-variable-function #'helpful-variable)
+    :bind
+    ([remap describe-function] . counsel-describe-function)
+    ([remap describe-command] . helpful-command)
+    ([remap describe-variable] . counsel-describe-variable)
+    ([remap describe-key] . helpful-key))
+  
+#+end_src
+
+
+#+begin_src emacs-lisp
+#+end_src
