@@ -6,10 +6,11 @@
 (menu-bar-mode -1)        ; Disable the menu bar
 (tooltip-mode -1)         ; Disable the tooltips
 (scroll-bar-mode -1)      ; Disable the scrollbar
-(setq visible-bell t)     ; Enable visible bell
+(setq visible-bell nil)     ; Enable visible bell
 
 (column-number-mode)      ; Enable column number
 (global-display-line-numbers-mode t)   ; Enable line numbers
+(setq display-line-numbers 'relative)
 
 ;; Disable line buffers in some modes
 (dolist (mode '(term-mode-hook
@@ -19,7 +20,7 @@
 ;; Make escape quit minibuffer
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-(set-face-attribute 'default nil :font "JetBrains Mono" :height 125) ; Set font
+(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 125) ; Set font
 
 ;; (load-theme 'wombat) ; Set theme
 
@@ -100,22 +101,46 @@
 ;; doom-themes
 (use-package doom-themes
   :config
-  (load-theme 'doom-palenight t))
+  (load-theme 'doom-one t))
 
-(use-package general)
+(use-package general
+  :config
+  (general-create-definer ha/leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "C-SPC")
+  (ha/leader-keys
+   "t" '(:ignore t :which-key "toggles")
+   "tt" '(counsel-load-theme :which-key "Choose theme")))
 
 (use-package evil
   :init
   (setq evil-want-integration t)
   (setq evil-keybinding nil)
+  (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
   :config
   (evil-mode 1)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
 
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
 
+;; Hydra
+(use-package hydra)
+(defhydra hydra-text-scale (:timeout 4)
+  "scale text"
+  ("j" text-scale-increase "in")
+  ("k" text-scale-decrease "out")
+  ("f" nil "finished" :exit t))
 
+(ha/leader-keys
+  "ts" '(hydra-text-scale/body :which-key "Scale text"))
+
+(use-package org-make-toc)
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -123,9 +148,9 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-safe-themes
-   '("5f128efd37c6a87cd4ad8e8b7f2afaba425425524a68133ac0efd87291d05874" "bf948e3f55a8cd1f420373410911d0a50be5a04a8886cabe8d8e471ad8fdba8e" default))
+   '("02f57ef0a20b7f61adce51445b68b2a7e832648ce2e7efb19d217b6454c1b644" "5f128efd37c6a87cd4ad8e8b7f2afaba425425524a68133ac0efd87291d05874" "bf948e3f55a8cd1f420373410911d0a50be5a04a8886cabe8d8e471ad8fdba8e" default))
  '(package-selected-packages
-   '(evil general doom-themes helpful counsel ivy-rich which-key rainbow-delimiters all-the-icons doom-modeline ivy)))
+   '(org-make-toc hydra evil-collection evil general doom-themes helpful counsel ivy-rich which-key rainbow-delimiters all-the-icons doom-modeline ivy)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
