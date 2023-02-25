@@ -24,6 +24,14 @@ This document contains my Emacs Configuration which is a main part of my workflo
   - [[#doom-modeline][Doom modeline]]
   - [[#keybind-panel][Keybind panel]]
   - [[#ivy-and-counsel][Ivy and Counsel]]
+- [[#keyboard-bindings][Keyboard bindings]]
+  - [[#escape-all][Escape all]]
+  - [[#evil-time][Evil time]]
+  - [[#leader-keybinds][Leader keybinds]]
+  - [[#basic-keybinds-with-leader][Basic keybinds with leader]]
+    - [[#buffer-commands][Buffer commands]]
+    - [[#theme-toggle][Theme toggle]]
+  - [[#keymaps-with-hydra][Keymaps with Hydra]]
 - [[#org-mode][Org mode]]
   - [[#base-config][Base config]]
   - [[#org-bullets][Org bullets]]
@@ -42,15 +50,18 @@ This document contains my Emacs Configuration which is a main part of my workflo
     - [[#forge][Forge]]
   - [[#projectile][Projectile]]
   - [[#languages][Languages]]
+    - [[#language-servers][Language Servers]]
+      - [[#lsp-ui][lsp-ui]]
+      - [[#lsp-treemacs][lsp-treemacs]]
+      - [[#lsp-ivy][lsp-ivy]]
+    - [[#rust][Rust]]
+    - [[#go][Go]]
+    - [[#typescript][TypeScript]]
+    - [[#html][HTML]]
     - [[#emacs-lisp][Emacs Lisp]]
-- [[#keyboard-bindings][Keyboard bindings]]
-  - [[#escape-all][Escape all]]
-  - [[#evil-time][Evil time]]
-  - [[#leader-keybinds][Leader keybinds]]
-  - [[#basic-keybinds-with-leader][Basic keybinds with leader]]
-    - [[#buffer-commands][Buffer commands]]
-    - [[#theme-toggle][Theme toggle]]
-  - [[#keymaps-with-hydra][Keymaps with Hydra]]
+    - [[#yaml][YAML]]
+  - [[#company-mode][Company mode]]
+  - [[#productivity][Productivity]]
 :END:
 
 * Startup performance
@@ -145,7 +156,8 @@ Remove line numbers in shell mode
 #+begin_src emacs-lisp
 
   (dolist (mode '(term-mode-hook
-                  eshell-mode-hook))
+                  eshell-mode-hook
+                  treemacs-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
   
 #+end_src
@@ -247,6 +259,83 @@ Ivy-rich adds extra information to a few Counsel commands.
   (use-package ivy-rich
     :init
     (ivy-rich-mode 1))
+
+#+end_src
+* Keyboard bindings
+** Escape all
+This makes the =escape= key quit the minibuffer.
+#+begin_src emacs-lisp
+
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  
+#+end_src
+
+** Evil time
+
+#+begin_src emacs-lisp
+
+  (use-package evil
+    :init
+    (setq evil-want-integration t)
+    (setq evil-keybinding nil)
+    (setq evil-want-keybinding nil)
+    (setq evil-want-C-u-scroll t)
+    :config
+    (evil-mode 1)
+    (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+    (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
+#+end_src
+
+Evil collection package to enhance our evil :smiling_imp: experience.
+#+begin_src emacs-lisp
+
+  (use-package evil-collection
+      :after evil
+      :config
+      (evil-collection-init))
+
+#+end_src
+
+** Leader keybinds
+
+Easy leader keymaps using =general.el=.
+
+#+begin_src emacs-lisp
+
+  (use-package general
+    :config
+    (general-create-definer ha/leader-keys
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix "C-SPC"))
+  
+#+end_src
+
+** Basic keybinds with leader
+*** Buffer commands
+*** Theme toggle
+#+begin_src emacs-lisp
+
+  (ha/leader-keys
+   "t"  '(:ignore t :which-key "toggles")
+   "tt" '(counsel-load-theme :which-key "Choose theme"))
+  
+#+end_src
+
+** Keymaps with Hydra
+Cool/useful keymaps with hydra
+#+begin_src emacs-lisp
+
+  (use-package hydra)
+  
+  (defhydra hydra-text-scale (:timeout 4)
+    "scale text"
+    ("j" text-scale-increase "in")
+    ("k" text-scale-decrease "out")
+    ("f" nil "finished" :exit t))
+
+  (ha/leader-keys
+    "ts" '(hydra-text-scale/body :which-key "Scale text"))
 
 #+end_src
 * Org mode
@@ -419,7 +508,112 @@ A package for GitHub integration with =Magit=.
     :config (counsel-projectile-mode))
 
 #+end_src
-** Languages
+** Languages 
+*** Language Servers
+
+#+begin_src emacs-lisp
+
+  (defun ha/lsp-mode-setup ()
+    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+    (lsp-headerline-breadcrumb-mode))
+
+  (use-package lsp-mode
+    :commands (lsp lsp-deferred)
+    :hook (lsp-mode . ha/lsp-mode-setup)
+    :init
+    (setq lsp-keymap-prefix "C-c l")
+    :config
+    (lsp-enable-which-key-integration t))
+
+  ;; Enable debugger
+  (use-package dap-mode
+    :after lsp-mode)
+
+#+end_src
+
+**** lsp-ui
+
+#+begin_src emacs-lisp
+
+  (use-package lsp-ui
+    :hook (lsp-mode . lsp-ui-mode)
+    :custom
+    (lsp-ui-doc-position 'bottom))
+  
+#+end_src
+
+**** lsp-treemacs
+
+#+begin_src emacs-lisp
+
+  (use-package lsp-treemacs
+    :after lsp)
+  
+#+end_src
+
+**** lsp-ivy
+
+#+begin_src emacs-lisp
+
+  (use-package lsp-ivy)
+  
+#+end_src
+
+*** Rust
+
+Make sure you have =rust-analyzer= installed.
+
+#+begin_src emacs-lisp
+
+  (use-package rust-mode
+    :mode "\\.rs\\'"
+    :init (setq rust-format-on-save t))
+
+  (use-package cargo
+    :defer t)
+  
+#+end_src
+
+*** Go
+
+Make sure you have =gopls= installed.
+
+#+begin_src emacs-lisp
+
+  (use-package go-mode
+    :hook (go-mode . lsp-deferred))
+  
+#+end_src
+
+*** TypeScript
+
+Requires the typescript-language-server to be installed.
+- =pacman -S typescript-language-server= - if using Arch Linux.
+- =npm install -g typescript-language-server typescript= - Generic Install.
+
+#+begin_src emacs-lisp
+
+  (use-package typescript-mode
+    :mode "\\.ts\\'"
+    :hook (typescript-mode . lsp-deferred)
+    :config
+    (setq typescript-indent-level 2))
+  
+#+end_src
+
+*** HTML
+
+#+begin_src emacs-lisp
+  
+  (use-package web-mode
+    :mode "(\\.\\(html?\\|ejs\\|tsx\\|jsx\\)\\'"
+    :config
+    (setq-default web-mode-code-indent-offset 2)
+    (setq-default web-mode-markup-indent-offset 2)
+    (setq-default web-mode-attribute-indent-offset 2))
+
+#+end_src
+
 *** Emacs Lisp
 
 #+begin_src emacs-lisp
@@ -436,80 +630,33 @@ A package for GitHub integration with =Magit=.
   
 #+end_src
 
-* Keyboard bindings
-** Escape all
-This makes the =escape= key quit the minibuffer.
+*** YAML
+
 #+begin_src emacs-lisp
 
-  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  (use-package yaml-mode
+    :mode "\\.ya?ml\\'")
   
 #+end_src
-
-** Evil time
-
-#+begin_src emacs-lisp
-
-  (use-package evil
-    :init
-    (setq evil-want-integration t)
-    (setq evil-keybinding nil)
-    (setq evil-want-keybinding nil)
-    (setq evil-want-C-u-scroll t)
-    :config
-    (evil-mode 1)
-    (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-    (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
-#+end_src
-
-Evil collection package to enhance our evil :smiling_imp: experience.
-#+begin_src emacs-lisp
-
-  (use-package evil-collection
-      :after evil
-      :config
-      (evil-collection-init))
-
-#+end_src
-
-** Leader keybinds
-
-Easy leader keymaps using =general.el=.
+** Company mode
 
 #+begin_src emacs-lisp
 
-  (use-package general
-    :config
-    (general-create-definer ha/leader-keys
-      :keymaps '(normal insert visual emacs)
-      :prefix "SPC"
-      :global-prefix "C-SPC"))
-  
-#+end_src
+  (use-package company
+    :after lsp-mode
+    :hook (lsp-mode . company-mode)
+    :bind (:map company-active-map
+           ("<tab>" . company-complete-selection))
+          (:map lsp-mode-map
+           ("<tab>" . company-indent-or-complete-common))
+    :custom
+    (company-minimum-prefix-length 1)
+    (company-idle-delay 0.0))
 
-** Basic keybinds with leader
-*** Buffer commands
-*** Theme toggle
-#+begin_src emacs-lisp
-
-  (ha/leader-keys
-   "t"  '(:ignore t :which-key "toggles")
-   "tt" '(counsel-load-theme :which-key "Choose theme"))
-  
-#+end_src
-
-** Keymaps with Hydra
-Cool/useful keymaps with hydra
-#+begin_src emacs-lisp
-
-  (use-package hydra)
-  
-  (defhydra hydra-text-scale (:timeout 4)
-    "scale text"
-    ("j" text-scale-increase "in")
-    ("k" text-scale-decrease "out")
-    ("f" nil "finished" :exit t))
-
-  (ha/leader-keys
-    "ts" '(hydra-text-scale/body :which-key "Scale text"))
+  (use-package company-box
+    :hook (company-mode . company-box-mode))
 
 #+end_src
+
+** Productivity
+

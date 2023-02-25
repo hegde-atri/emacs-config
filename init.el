@@ -46,7 +46,8 @@
 (setq display-line-numbers 'relative)      ; Make line numbers relative
 
 (dolist (mode '(term-mode-hook
-                eshell-mode-hook))
+                eshell-mode-hook
+                treemacs-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 125)
@@ -97,6 +98,46 @@
 (use-package ivy-rich
   :init
   (ivy-rich-mode 1))
+
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+(use-package evil
+  :init
+  (setq evil-want-integration t)
+  (setq evil-keybinding nil)
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll t)
+  :config
+  (evil-mode 1)
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
+
+(use-package evil-collection
+    :after evil
+    :config
+    (evil-collection-init))
+
+(use-package general
+  :config
+  (general-create-definer ha/leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "C-SPC"))
+
+(ha/leader-keys
+ "t"  '(:ignore t :which-key "toggles")
+ "tt" '(counsel-load-theme :which-key "Choose theme"))
+
+(use-package hydra)
+
+(defhydra hydra-text-scale (:timeout 4)
+  "scale text"
+  ("j" text-scale-increase "in")
+  ("k" text-scale-decrease "out")
+  ("f" nil "finished" :exit t))
+
+(ha/leader-keys
+  "ts" '(hydra-text-scale/body :which-key "Scale text"))
 
 (defun ha/org-mode-setup ()
   (org-indent-mode)
@@ -204,6 +245,55 @@
 (use-package counsel-projectile
   :config (counsel-projectile-mode))
 
+(defun ha/lsp-mode-setup ()
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :hook (lsp-mode . ha/lsp-mode-setup)
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :config
+  (lsp-enable-which-key-integration t))
+
+;; Enable debugger
+(use-package dap-mode
+  :after lsp-mode)
+
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (lsp-ui-doc-position 'bottom))
+
+(use-package lsp-treemacs
+  :after lsp)
+
+(use-package lsp-ivy)
+
+(use-package rust-mode
+  :mode "\\.rs\\'"
+  :init (setq rust-format-on-save t))
+
+(use-package cargo
+  :defer t)
+
+(use-package go-mode
+  :hook (go-mode . lsp-deferred))
+
+(use-package typescript-mode
+  :mode "\\.ts\\'"
+  :hook (typescript-mode . lsp-deferred)
+  :config
+  (setq typescript-indent-level 2))
+
+(use-package web-mode
+  :mode "(\\.\\(html?\\|ejs\\|tsx\\|jsx\\)\\'"
+  :config
+  (setq-default web-mode-code-indent-offset 2)
+  (setq-default web-mode-markup-indent-offset 2)
+  (setq-default web-mode-attribute-indent-offset 2))
+
 (use-package helpful
   :custom
   (counsel-describe-function-function #'helpful-callable)
@@ -214,42 +304,19 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+(use-package yaml-mode
+  :mode "\\.ya?ml\\'")
 
-(use-package evil
-  :init
-  (setq evil-want-integration t)
-  (setq evil-keybinding nil)
-  (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
-  :config
-  (evil-mode 1)
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
+(use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind (:map company-active-map
+         ("<tab>" . company-complete-selection))
+        (:map lsp-mode-map
+         ("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0))
 
-(use-package evil-collection
-    :after evil
-    :config
-    (evil-collection-init))
-
-(use-package general
-  :config
-  (general-create-definer ha/leader-keys
-    :keymaps '(normal insert visual emacs)
-    :prefix "SPC"
-    :global-prefix "C-SPC"))
-
-(ha/leader-keys
- "t"  '(:ignore t :which-key "toggles")
- "tt" '(counsel-load-theme :which-key "Choose theme"))
-
-(use-package hydra)
-
-(defhydra hydra-text-scale (:timeout 4)
-  "scale text"
-  ("j" text-scale-increase "in")
-  ("k" text-scale-decrease "out")
-  ("f" nil "finished" :exit t))
-
-(ha/leader-keys
-  "ts" '(hydra-text-scale/body :which-key "Scale text"))
+(use-package company-box
+  :hook (company-mode . company-box-mode))
