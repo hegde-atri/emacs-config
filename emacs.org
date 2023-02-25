@@ -471,6 +471,16 @@ Make working with org files pretty and centered.
 #+end_src
 
 ** Commenting lines
+
+Easier/better way to comment in emacs.
+
+#+begin_src emacs-lisp
+  
+  (use-package evil-nerd-commenter
+    :bind ("M-/" . evilnc-comment-or-uncomment-lines))
+
+#+end_src
+
 ** Automatically clean whitespace
 * Development
 ** Magit
