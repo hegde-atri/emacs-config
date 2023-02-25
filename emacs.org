@@ -1,6 +1,7 @@
 #+title: My Emacs configuration
 #+author: Atri Hegde
 #+description: An org file to describe, document and organise my Emacs configuration.
+#+property: header-args:emacs-lisp :tangle ./init-new.el
 
 * Preface
 
@@ -53,8 +54,8 @@ I manage my Emacs packages using =package.el= and =use-package=
 
   (require 'package)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-  ;; (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
-  ;; (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/packages/") t)
+  (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
+  (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/") t)
   (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 
   (package-initialize)
@@ -151,6 +152,32 @@ I like to use doom themes and occasionally the included themes.
   
 #+end_src
 
+* Org mode 
+** Configure Babel languages
+
+#+begin_src emacs-lisp
+
+  (org-babel-do-load-languages
+    'org-babel-load-languages
+    '((emacs-lisp . t)
+      (python . t)))
+#+end_src
+
+** Auto-tangle Configuration files
+
+#+begin_src emacs-lisp
+
+  ;; Automatically tangle emacs.org whenever it is saved.
+  (defun ha/org-babel-tangle-config ()
+    (when (string-equal (buffer-file-name)
+                       (expand-file-name "~/.emacs.d/emacs.org"))
+      (let ((org-confirm-babel-evaluate nil))
+        (org-babel-tangle))))
+  
+  (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'ha/org-babel-tangle-config)))
+
+#+end_src
+
 * Editing Configuration
 ** Tab widths
 
@@ -230,7 +257,6 @@ Keymaps to change UI
 ** Keymaps with Hydra
 * Development
 ** Git
-
 ** Projectile
 ** Languages
 
