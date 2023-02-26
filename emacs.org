@@ -16,6 +16,7 @@ This document contains my Emacs Configuration which is a main part of my workflo
 - [[#startup-performance][Startup performance]]
 - [[#native-compilation][Native Compilation]]
 - [[#package-management][Package management]]
+- [[#keep-folders-clean][Keep folders clean]]
 - [[#general-configuration][General Configuration]]
   - [[#user-interface][User Interface]]
     - [[#customize-per-mode][Customize per mode]]
@@ -30,6 +31,7 @@ This document contains my Emacs Configuration which is a main part of my workflo
   - [[#leader-keybinds][Leader keybinds]]
   - [[#basic-keybinds-with-leader][Basic keybinds with leader]]
     - [[#buffer-commands][Buffer commands]]
+    - [[#window-commands][Window commands]]
     - [[#theme-toggle][Theme toggle]]
   - [[#keymaps-with-hydra][Keymaps with Hydra]]
 - [[#org-mode][Org mode]]
@@ -40,6 +42,8 @@ This document contains my Emacs Configuration which is a main part of my workflo
   - [[#configure-babel-languages][Configure Babel languages]]
   - [[#auto-tangle-configuration-files][Auto-tangle Configuration files]]
   - [[#visual-fill-column][Visual fill column]]
+  - [[#org-present][Org-present]]
+  - [[#roam][Roam]]
 - [[#editing-configuration][Editing Configuration]]
   - [[#tab-widths][Tab widths]]
   - [[#spaces-instead-of-tabs][Spaces instead of tabs]]
@@ -55,6 +59,7 @@ This document contains my Emacs Configuration which is a main part of my workflo
       - [[#lsp-treemacs][lsp-treemacs]]
       - [[#lsp-ivy][lsp-ivy]]
     - [[#rust][Rust]]
+    - [[#astro][Astro]]
     - [[#go][Go]]
     - [[#typescript][TypeScript]]
     - [[#html][HTML]]
@@ -62,6 +67,11 @@ This document contains my Emacs Configuration which is a main part of my workflo
     - [[#yaml][YAML]]
   - [[#company-mode][Company mode]]
   - [[#productivity][Productivity]]
+    - [[#workspaces-with-persp-mode][Workspaces with persp-mode]]
+    - [[#dashboard][Dashboard]]
+    - [[#highlight-todo][Highlight TODO]]
+- [[#runtime-performance][Runtime performance]]
+- [[#after-frame-hooks][After frame hooks]]
 :END:
 
 * Startup performance
@@ -114,7 +124,7 @@ use-package have =:ensure t= by default.
     (package-refresh-contents))
   
   (unless (package-installed-p 'use-package)
-    (package-refresh-contentts)
+    (package-refresh-contents)
     (package-install 'use-package))
 
   (require 'use-package)
@@ -574,6 +584,8 @@ Give presentations using org-mode.
 ** Roam
 
 Org-roam-v2!
+I use org-roam to take my notes, journal and keep track. If you are not using it, you
+should definitely try it out.
 
 #+begin_src emacs-lisp
 
