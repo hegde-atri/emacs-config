@@ -581,21 +581,58 @@ Org-roam-v2!
     :ensure t
     :custom
     (org-roam-directory "~/org/roam")
+    (org-roam-capture-templates
+      '(("d" "default" plain
+         "%?"
+         :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n")
+         :unnarrowed t)
+        ("m" "module" plain
+         ;; (file "<path to template>")
+         "\n* Module details\n\n- %^{Module code}\n- Semester: %^{Semester}\n\n* %?"
+         :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+         :unnarrowed t)
+        ("b" "book notes" plain
+         "\n* Source\n\n- Author: %^{Author}\n- Title: ${title}\n- Year: %^{Year}\n\n%?"
+         :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+         :unnarrowed t)
+      )
+    )
+    (setq org-roam-dailies-capture-templates
+      '(("d" "default" entry "* %<%H:%M>: %?"
+         :ifnew (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))
+      )
+    )
+    :bind-keymap
+    ("C-c n d" . org-roam-dailes-map)
     :config
     (org-roam-setup))
 
   ;; Keybinds
   (ha/leader-keys
-   "n"   '(:ignore t :which-key "notes")
-   "nr"  '(:ignore t :which-key "roam")
-   "nrt" '(org-roam-buffer-toggle :which-key "buffer toggle")
-   "nrf" '(org-roam-node-find :which-key "find node")
-   "nri" '(org-roam-node-insert :which-key "insert node")
-   ;; heading
-   "nrh" '(:ignore t :which-key "heading")
-   "nrhi" '(org-id-get-create :which-key "insert")
-   "nrha" '(org-roam-alias-add :which-key "add alias")
-   "nrhf" '(org-find-entry-with-id :which-key "find"))
+   "n"  '(:ignore t :which-key "roam notes")
+   "nt" '(org-roam-buffer-toggle :which-key "buffer toggle")
+   "nf" '(org-roam-node-find :which-key "find node")
+   "ni" '(org-roam-node-insert :which-key "insert node")
+   "nb" '(org-roam-buffer-toggle :which-key "backlinks")
+   "ng" '(org-roam-graph :which-key "graph")
+   ;; Heading/Links
+   "nh"  '(:ignore t :which-key "heading")
+   "nhi" '(org-id-get-create :which-key "insert")
+   "nha" '(org-roam-alias-add :which-key "add alias")
+   "nhf" '(org-find-entry-with-id :which-key "find")
+   ;; Dailies
+   "nd"  '(:ignore t :whick-key "dailies")
+   "ndn" '(org-roam-dailies-capture-today :whick-key "capture today")
+   "ndN" '(org-roam-dailies-goto-today :which-key "goto today")
+   "ndy" '(org-roam-dailies-goto-yesterday :which-key "goto yesterday")
+   "ndY" '(org-roam-dailies-capture-yesterday :which-key "capture yesterday")
+   "ndt" '(org-roam-dailies-goto-tomorrow :which-key "goto tomorrow")
+   "ndT" '(org-roam-dailies-capture-tomorrow :which-key "capture tomorrow")
+   "ndd" '(org-roam-dailies-capture-date :which-key "capture date")
+   "ndD" '(org-roam-dailies-goto-date :which-key "goto date")
+   "ndf" '(org-roam-dailies-goto-next-note :which-key "next note")
+   "ndb" '(org-roam-dailies-goto-previous-note :which-key "prev note")
+  )
 
 #+end_src
 
