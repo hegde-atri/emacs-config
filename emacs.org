@@ -143,9 +143,9 @@ Relative line numbers. Really helpful when using evil mode.
 
 #+begin_src emacs-lisp
 
-  (column-number-mode)                       ; Enable column number
-  (global-display-line-numbers-mode t)       ; Enable line numbers
-  (setq display-line-numbers 'relative)      ; Make line numbers relative
+  (column-number-mode)                           ; Enable column number
+  (global-display-line-numbers-mode t)           ; Enable line numbers
+  (menu-bar-display-line-numbers-mode 'relative) ; Make line numbers relative
   
 #+end_src
 
@@ -313,7 +313,38 @@ Easy leader keymaps using =general.el=.
 
 ** Basic keybinds with leader
 *** Buffer commands
+
+#+begin_src emacs-lisp
+
+  (ha/leader-keys
+   "b"  '(:ignore t :which-key "buffer")
+   "bs" '(save-buffer :which-key "save")
+   "bk" '(kill-buffer :which-key "kill"))
+  
+#+end_src
+
+*** Window commands
+
+#+begin_src emacs-lisp
+
+  (ha/leader-keys
+   "w"  '(:ignore t :which-key "window")
+   "ws" '(split-window-vertically :which-key "vertical split")
+   "wv" '(split-window-horizontally :which-key "horizontal split")
+   "wc" '(delete-window :which-key "close window")
+   "wh" '(evil-window-left :which-key "go to left window")
+   "wl" '(evil-window-right :which-key "go to right window")
+   "wj" '(evil-window-down :which-key "go down a window")
+   "wk" '(evil-window-up :which-key "go up a window")
+   "wH" '(evil-window-increase-height :which-key "increase height")
+   "wL" '(evil-window-decrease-height :which-key "decrease height")
+   "wJ" '(evil-window-increase-width :which-key "increase width")
+   "wK" '(evil-window-decrease-width :which-key "decrease width")
+   "w=" '(balance-windows :which-key "balance windows"))
+#+end_src
+
 *** Theme toggle
+
 #+begin_src emacs-lisp
 
   (ha/leader-keys
@@ -439,7 +470,9 @@ Templates for expanding a source code block.
 #+end_src
 
 ** Visual fill column
+
 Make working with org files pretty and centered.
+
 #+begin_src emacs-lisp
 
   (defun ha/org-mode-visual-fill ()
@@ -484,7 +517,9 @@ Easier/better way to comment in emacs.
 ** Automatically clean whitespace
 * Development
 ** Magit
+
 The best git porcelain.
+
 #+begin_src emacs-lisp
   
   (use-package magit
@@ -492,6 +527,20 @@ The best git porcelain.
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 #+end_src
+
+Setting up keybinds for magit
+
+#+begin_src emacs-lisp
+
+  (ha/leader-keys
+   "g"  '(:ignore t :which-key "Magit")
+   "gg" '(magit-status :which-key "status")
+   "gs" '(magit-status :which-key "status")
+   "gc" '(magit-commit :which-key "commit")
+   "gp" '(magit-commit :which-key "push"))
+
+#+end_src
+
 *** Forge
 A package for GitHub integration with =Magit=.
 #+begin_src emacs-lisp
@@ -561,6 +610,18 @@ A package for GitHub integration with =Magit=.
   
 #+end_src
 
+Also setting up keybinds for interacting with treemacs.
+
+#+begin_src emacs-lisp
+
+  (ha/leader-keys
+   "o"  '(:ignore t :which-key "open")
+   "ot" '(treemacs :which-key "Treemacs")
+   "os" '(lsp-treemacs-symbols :which-key "LSP treemacs symols")
+   )
+  
+#+end_src
+
 **** lsp-ivy
 
 #+begin_src emacs-lisp
@@ -577,10 +638,33 @@ Make sure you have =rust-analyzer= installed.
 
   (use-package rust-mode
     :mode "\\.rs\\'"
+    :hook (rust-mode . lsp-deferred)
     :init (setq rust-format-on-save t))
 
   (use-package cargo
     :defer t)
+
+#+end_src
+
+*** Astro
+
+Hacked a way to get astro support. Found in =lsp-mode= github issue.
+
+#+begin_src emacs-lisp
+
+  (define-derived-mode astro-mode web-mode "astro")
+  (setq auto-mode-alist
+        (append '((".*\\.astro\\'" . astro-mode))
+                auto-mode-alist))
+
+  (with-eval-after-load 'lsp-mode
+    (add-to-list 'lsp-language-id-configuration
+                 '(astro-mode . "astro"))
+
+    (lsp-register-client
+     (make-lsp-client :new-connection (lsp-stdio-connection '("astro-ls" "--stdio"))
+                      :activation-fn (lsp-activate-on "astro")
+                      :server-id 'astro-ls)))
   
 #+end_src
 
@@ -669,4 +753,52 @@ Requires the typescript-language-server to be installed.
 #+end_src
 
 ** Productivity
+*** Workspaces with persp-mode
+
+I like having workspaces as I often will have to quickly switch projects. Without
+having kill my other buffers, e.g. allows me to seperate my notes from my projects.
+TODO
+
+#+begin_src emacs-lisp
+
+  (use-package persp-mode
+    :config
+    (persp-mode 1))
+  
+#+end_src
+
+*** Dashboard
+
+I think a cool dashboard makes me open emacs more and do work :)
+
+#+begin_src emacs-lisp
+
+  (use-package dashboard
+    :config
+    (dashboard-setup-startup-hook))
+
+  ;; Make dashboard the default buffer in emacsclient
+  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+
+#+end_src
+
+*** Highlight TODO
+
+Highlight keywords like =TODO=, =FIXME=, etc.
+
+#+begin_src emacs-lisp
+  
+  (use-package hl-todo
+    :hook (prog-mode . hl-todo-mode)
+    :config
+    (setq hl-todo-highlight-punctuation ":"
+          hl-todo-keyword-faces
+          `(("TODO"        warning bold)
+            ("FIXME"       error bold)
+            ("HACK"        font-lock-constant-face bold)
+            ("REVIEW"      font-lock-keyword-face bold)
+            ("NOTE"        success bold)
+            ("DEPRECATED"  font-lock-doc-face bold))))
+
+#+end_src
 

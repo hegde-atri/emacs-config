@@ -41,9 +41,9 @@
 (scroll-bar-mode -1)     ; Disable the scrollbar
 (setq visible-bell nil)  ; Visible bell disabled
 
-(column-number-mode)                       ; Enable column number
-(global-display-line-numbers-mode t)       ; Enable line numbers
-(setq display-line-numbers 'relative)      ; Make line numbers relative
+(column-number-mode)                           ; Enable column number
+(global-display-line-numbers-mode t)           ; Enable line numbers
+(menu-bar-display-line-numbers-mode 'relative) ; Make line numbers relative
 
 (dolist (mode '(term-mode-hook
                 eshell-mode-hook
@@ -123,6 +123,26 @@
     :keymaps '(normal insert visual emacs)
     :prefix "SPC"
     :global-prefix "C-SPC"))
+
+(ha/leader-keys
+ "b"  '(:ignore t :which-key "buffer")
+ "bs" '(save-buffer :which-key "save")
+ "bk" '(kill-buffer :which-key "kill"))
+
+(ha/leader-keys
+ "w"  '(:ignore t :which-key "window")
+ "ws" '(split-window-vertically :which-key "vertical split")
+ "wv" '(split-window-horizontally :which-key "horizontal split")
+ "wc" '(delete-window :which-key "close window")
+ "wh" '(evil-window-left :which-key "go to left window")
+ "wl" '(evil-window-right :which-key "go to right window")
+ "wj" '(evil-window-down :which-key "go down a window")
+ "wk" '(evil-window-up :which-key "go up a window")
+ "wH" '(evil-window-increase-height :which-key "increase height")
+ "wL" '(evil-window-decrease-height :which-key "decrease height")
+ "wJ" '(evil-window-increase-width :which-key "increase width")
+ "wK" '(evil-window-decrease-width :which-key "decrease width")
+ "w=" '(balance-windows :which-key "balance windows"))
 
 (ha/leader-keys
  "t"  '(:ignore t :which-key "toggles")
@@ -231,6 +251,13 @@
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
+(ha/leader-keys
+ "g"  '(:ignore t :which-key "Magit")
+ "gg" '(magit-status :which-key "status")
+ "gs" '(magit-status :which-key "status")
+ "gc" '(magit-commit :which-key "commit")
+ "gp" '(magit-commit :which-key "push"))
+
 ;; TODO, setup
 (use-package forge)
 
@@ -272,14 +299,35 @@
 (use-package lsp-treemacs
   :after lsp)
 
+(ha/leader-keys
+ "o"  '(:ignore t :which-key "open")
+ "ot" '(treemacs :which-key "Treemacs")
+ "os" '(lsp-treemacs-symbols :which-key "LSP treemacs symols")
+ )
+
 (use-package lsp-ivy)
 
 (use-package rust-mode
   :mode "\\.rs\\'"
+  :hook (rust-mode . lsp-deferred)
   :init (setq rust-format-on-save t))
 
 (use-package cargo
   :defer t)
+
+(define-derived-mode astro-mode web-mode "astro")
+(setq auto-mode-alist
+      (append '((".*\\.astro\\'" . astro-mode))
+              auto-mode-alist))
+
+(with-eval-after-load 'lsp-mode
+  (add-to-list 'lsp-language-id-configuration
+               '(astro-mode . "astro"))
+
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-stdio-connection '("astro-ls" "--stdio"))
+                    :activation-fn (lsp-activate-on "astro")
+                    :server-id 'astro-ls)))
 
 (use-package go-mode
   :hook (go-mode . lsp-deferred))
@@ -323,16 +371,26 @@
 
 (use-package company-box
   :hook (company-mode . company-box-mode))
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(evil-nerd-commenter yaml-mode which-key web-mode visual-fill-column use-package typescript-mode rust-mode rainbow-delimiters org-make-toc org-bullets lsp-ui lsp-ivy ivy-rich helpful go-mode general forge evil-collection doom-themes doom-modeline dap-mode counsel-projectile company-box cargo all-the-icons)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+
+(use-package persp-mode
+  :config
+  (persp-mode 1))
+
+(use-package dashboard
+  :config
+  (dashboard-setup-startup-hook))
+
+;; Make dashboard the default buffer in emacsclient
+(setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+
+(use-package hl-todo
+  :hook (prog-mode . hl-todo-mode)
+  :config
+  (setq hl-todo-highlight-punctuation ":"
+        hl-todo-keyword-faces
+        `(("TODO"        warning bold)
+          ("FIXME"       error bold)
+          ("HACK"        font-lock-constant-face bold)
+          ("REVIEW"      font-lock-keyword-face bold)
+          ("NOTE"        success bold)
+          ("DEPRECATED"  font-lock-doc-face bold))))
