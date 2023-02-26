@@ -106,7 +106,7 @@ use-package have =:ensure t= by default.
   (require 'package)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
-  (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/") t)
+  ;; (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/") t)
   (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 
   (package-initialize)
@@ -119,6 +119,18 @@ use-package have =:ensure t= by default.
 
   (require 'use-package)
   (setq use-package-always-ensure t)
+
+#+end_src
+
+* Keep folders clean
+
+Keep folders where we edit files clean of any file that emacs creates.
+
+#+begin_src emacs-lisp
+
+  (use-package no-littering)
+  (setq auto-save-file-name-transforms
+      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
 
 #+end_src
 
@@ -136,6 +148,9 @@ Making the interface more minimal.
   (tool-bar-mode -1)       ; Disable the tool bar
   (scroll-bar-mode -1)     ; Disable the scrollbar
   (setq visible-bell nil)  ; Visible bell disabled
+
+  (set-frame-parameter (selected-frame) 'alpha '(97 . 100))
+  (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
 
 #+end_src
 
@@ -169,9 +184,10 @@ I alternate between =Cantarell= and =Overpass= for my variable space fonts.
 
 #+begin_src emacs-lisp
 
-  (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 125)
-  (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 125)
-  (set-face-attribute 'variable-pitch nil :font "Overpass" :height 140 :weight 'regular)
+  (defun ha/setup-font-main ()
+    (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 125 :weight 'light)
+    (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 125 :weight 'light)
+    (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 140 :weight 'light))
 
 #+end_src
 
@@ -201,7 +217,7 @@ I like to use doom themes and occasionally the included themes.
 
   (use-package doom-themes
     :config
-    (load-theme 'doom-dracula t))
+    (load-theme 'doom-palenight t))
   
 #+end_src
 
@@ -217,6 +233,7 @@ I like to use doom themes and occasionally the included themes.
       (doom-modeline-battery t)))
   
 #+end_src
+
 ** Keybind panel
 
 I am using which-key that helps me discover new keybinds and provides a pretty way to
@@ -225,19 +242,23 @@ rediscover my keybinds.
 #+begin_src emacs-lisp
 
   (use-package which-key
-    :init (which-key-mode)
+    :defer 0
+    ;; :init (which-key-mode)
     :diminish which-key-mode
     :config
+    (which-key-mode)
     (setq which-key-idle-delay 0.3))
-  
+
 #+end_src
 
 ** Ivy and Counsel
+
 Ivy is my choice of completion engine for Emacs. Counsel gives me some commands such
 as =counsel-find-file= replacing emacs =find-file= with a much nicer minibuffer(ivy).
 Ivy-rich adds extra information to a few Counsel commands.
+
 #+begin_src emacs-lisp
-  
+
   (use-package swiper)
   (use-package ivy
     :diminish
@@ -257,10 +278,12 @@ Ivy-rich adds extra information to a few Counsel commands.
     (setq ivy-initial-inputs-alist nil))
 
   (use-package ivy-rich
+    :after ivy
     :init
     (ivy-rich-mode 1))
 
 #+end_src
+
 * Keyboard bindings
 ** Escape all
 This makes the =escape= key quit the minibuffer.
@@ -283,7 +306,10 @@ This makes the =escape= key quit the minibuffer.
     :config
     (evil-mode 1)
     (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-    (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
+    (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+    (evil-set-initial-state 'messages-buffer-mode 'normal)
+    (evil-set-initial-state 'dashboard-mode 'normal))
+
 #+end_src
 
 Evil collection package to enhance our evil :smiling_imp: experience.
@@ -319,7 +345,7 @@ Easy leader keymaps using =general.el=.
   (ha/leader-keys
    "b"  '(:ignore t :which-key "buffer")
    "bs" '(save-buffer :which-key "save")
-   "bk" '(kill-buffer :which-key "kill"))
+   "bk" '(kill-current-buffer :which-key "kill"))
   
 #+end_src
 
@@ -354,11 +380,14 @@ Easy leader keymaps using =general.el=.
 #+end_src
 
 ** Keymaps with Hydra
+
 Cool/useful keymaps with hydra
+
 #+begin_src emacs-lisp
 
-  (use-package hydra)
-  
+  (use-package hydra
+    :defer t)
+
   (defhydra hydra-text-scale (:timeout 4)
     "scale text"
     ("j" text-scale-increase "in")
@@ -369,9 +398,12 @@ Cool/useful keymaps with hydra
     "ts" '(hydra-text-scale/body :which-key "Scale text"))
 
 #+end_src
+
 * Org mode
 ** Base config
+
 Configuring the org package.
+
 #+begin_src emacs-lisp
 
   (defun ha/org-mode-setup ()
@@ -395,9 +427,10 @@ Configuring the org package.
                     (org-level-6 . 1.15)
                     (org-level-7 . 1.1)
                     (org-level-8 . 1.05)))
-      (set-face-attribute (car face) nil :font "Overpass" :weight 'bold :height (cdr face)))
+      (set-face-attribute (car face) nil :font "Overpass" :weight 'medium :height (cdr face)))
 
   ;; Fonts in org
+    (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
     (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
     (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
     (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
@@ -411,47 +444,62 @@ Configuring the org package.
     (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch))
 
   (use-package org
+    :commands (org-capture org-agenda)
     :hook (org-mode . ha/org-mode-setup)
     :config
     (setq org-ellipsis " ▼ "
           org-hide-emphasis-markers t)
     (ha/org-font-setup))
-  
+
 #+end_src
+
 ** Org bullets
-Replace =*= with different bullets
+
+Replace =*= with different bullets.
+
 #+begin_src emacs-lisp
 
   (use-package org-bullets
-    :after org
     :hook (org-mode . org-bullets-mode)
     :custom
     (setq org-bullets-list '("◉" "●" "○" "◆" "●" "○" "◆")))
 
 #+end_src
+
 ** Org TOC
+
 A plugin that generates a TOC for org documents on save.
+
 #+begin_src emacs-lisp
   (use-package org-make-toc)
 #+end_src
+
 ** Org templates
+
 Templates for expanding a source code block.
+
 #+begin_src emacs-lisp
-  (require 'org-tempo)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("python" . "src python"))
-  (add-to-list 'org-structure-template-alist '("rs" . "src rust"))
-  (add-to-list 'org-structure-template-alist '("cf" . "src conf"))
+
+  (with-eval-after-load 'org
+    (require 'org-tempo)
+    (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+    (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+    (add-to-list 'org-structure-template-alist '("python" . "src python"))
+    (add-to-list 'org-structure-template-alist '("rs" . "src rust"))
+    (add-to-list 'org-structure-template-alist '("cf" . "src conf")))
+  
 #+end_src
+
 ** Configure Babel languages
 
 #+begin_src emacs-lisp
 
-  (org-babel-do-load-languages
-    'org-babel-load-languages
-    '((emacs-lisp . t)
-      (python . t)))
+  (with-eval-after-load 'org
+    (org-babel-do-load-languages
+      'org-babel-load-languages
+      '((emacs-lisp . t)
+        (python . t))))
+
 #+end_src
 
 ** Auto-tangle Configuration files
@@ -483,6 +531,72 @@ Make working with org files pretty and centered.
   (use-package visual-fill-column
     :hook (org-mode . ha/org-mode-visual-fill))
   
+#+end_src
+
+** Org-present
+
+Give presentations using org-mode.
+
+#+begin_src emacs-lisp
+
+  (use-package org-present)
+
+  ;; Tweak our font sizes during present
+  (defun ha/org-present-start ()
+    (setq-local face-remapping-alist '((default (:height 1.5) variable-pitch)
+                                       (header-line (:height 4.0) variable-pitch)
+                                       (org-document-title (:height 1.75) org-document-title)
+                                       (org-code (:height 1.55) org-code)
+                                       (org-verbatim (:height 1.55) org-verbatim)
+                                       (org-block (:height 1.25) org-block)
+                                       (org-block-begin-line (:height 0.7) org-block)))
+    (setq header-line-format " ")
+    (display-line-numbers-mode -1))
+
+  ;; Undo tweaks 
+  (defun ha/org-present-end ()
+    (setq-local face-remapping-alist '((default variable-pitch default)))
+    (setq header-line-format nil)
+    (display-line-numbers-mode nil))
+
+  ;; Preparing the slides
+  (defun ha/org-present-prepare-slide (buffer-name heading)
+    (org-overview)
+    (org-show-entry)
+    (org-show-children))
+
+  (add-hook 'org-present-after-navigate-functions 'ha/org-present-prepare-slide)
+  (add-hook 'org-present-mode-hook 'ha/org-present-start)
+  (add-hook 'org-present-mode-quit-hook 'ha/org-present-end)
+
+#+end_src
+
+** Roam
+
+Org-roam-v2!
+
+#+begin_src emacs-lisp
+
+  (use-package org-roam
+    :ensure t
+    :custom
+    (org-roam-directory "~/org/roam")
+    :config
+    (org-roam-setup))
+
+  ;; Keybinds
+  (ha/leader-keys
+   "n"   '(:ignore t :which-key "notes")
+   "nr"  '(:ignore t :which-key "roam")
+   "nrt" '(org-roam-buffer-toggle :which-key "buffer toggle")
+   "nrf" '(org-roam-node-find :which-key "find node")
+   "nri" '(org-roam-node-insert :which-key "insert node")
+   ;; heading
+   "nrh" '(:ignore t :which-key "heading")
+   "nrhi" '(org-id-get-create :which-key "insert")
+   "nrha" '(org-roam-alias-add :which-key "add alias")
+   "nrhf" '(org-find-entry-with-id :which-key "find"))
+
 #+end_src
 
 * Editing Configuration
@@ -521,8 +635,9 @@ Easier/better way to comment in emacs.
 The best git porcelain.
 
 #+begin_src emacs-lisp
-  
+
   (use-package magit
+    :commands (magit-status magit-commit magit-push)
     :custom
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
@@ -537,21 +652,26 @@ Setting up keybinds for magit
    "gg" '(magit-status :which-key "status")
    "gs" '(magit-status :which-key "status")
    "gc" '(magit-commit :which-key "commit")
-   "gp" '(magit-commit :which-key "push"))
+   "gp" '(magit-push :which-key "push"))
 
 #+end_src
 
 *** Forge
+
 A package for GitHub integration with =Magit=.
+
 #+begin_src emacs-lisp
-  
+
   ;; TODO, setup
-  (use-package forge)
+  (use-package forge
+    :after magit)
 
 #+end_src
+
 ** Projectile
+
 #+begin_src emacs-lisp
-  
+
   (use-package projectile
     :diminish projectile-mode
     :config (projectile-mode)
@@ -564,9 +684,11 @@ A package for GitHub integration with =Magit=.
     (setq projectile-switch-project-action #'projectile-dired))
 
   (use-package counsel-projectile
+    :after projectile
     :config (counsel-projectile-mode))
 
 #+end_src
+
 ** Languages 
 *** Language Servers
 
@@ -586,7 +708,8 @@ A package for GitHub integration with =Magit=.
 
   ;; Enable debugger
   (use-package dap-mode
-    :after lsp-mode)
+    ;; :after lsp-mode
+    :commands dap-debug)
 
 #+end_src
 
@@ -626,8 +749,9 @@ Also setting up keybinds for interacting with treemacs.
 
 #+begin_src emacs-lisp
 
-  (use-package lsp-ivy)
-  
+  (use-package lsp-ivy
+    :after lsp)
+
 #+end_src
 
 *** Rust
@@ -713,6 +837,7 @@ Requires the typescript-language-server to be installed.
 #+begin_src emacs-lisp
 
   (use-package helpful
+    :commands (helpful-callable helpful-variable helpful-command helpful-key)
     :custom
     (counsel-describe-function-function #'helpful-callable)
     (counsel-describe-variable-function #'helpful-variable)
@@ -721,7 +846,7 @@ Requires the typescript-language-server to be installed.
     ([remap describe-command] . helpful-command)
     ([remap describe-variable] . counsel-describe-variable)
     ([remap describe-key] . helpful-key))
-  
+
 #+end_src
 
 *** YAML
@@ -732,6 +857,7 @@ Requires the typescript-language-server to be installed.
     :mode "\\.ya?ml\\'")
   
 #+end_src
+
 ** Company mode
 
 #+begin_src emacs-lisp
@@ -802,3 +928,27 @@ Highlight keywords like =TODO=, =FIXME=, etc.
 
 #+end_src
 
+* Runtime performance
+
+Dial the GC threshold back down so GC happens more frequently but in less time.
+
+#+begin_src emacs-lisp
+
+  (setq gc-cons-threshold (* 2 1000 1000))
+  
+#+end_src
+
+* After frame hooks
+
+For some reason, my emacs running in daemon mode fails to render the correct fonts.
+
+#+begin_src emacs-lisp
+
+  ;; Main fonts
+  (add-hook 'after-init-hook 'ha/setup-font-main)
+  (add-hook 'server-after-make-frame-hook 'ha/setup-font-main)
+  ;; Fonts in org mode 
+  (add-hook 'after-init-hook 'ha/org-font-setup)
+  (add-hook 'server-after-make-frame-hook 'ha/org-font-setup)
+
+#+end_src

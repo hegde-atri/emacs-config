@@ -19,7 +19,7 @@
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 (add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/") t)
-(add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/") t)
+;; (add-to-list 'package-archives '("nongnu" . "https://elpa.nongnu.org/nongnu/") t)
 (add-to-list 'package-archives '("org" . "https://orgmode.org/elpa/") t)
 
 (package-initialize)
@@ -33,6 +33,10 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+(use-package no-littering)
+(setq auto-save-file-name-transforms
+    `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+
 (setq inhibit-startup-message t)
 
 (tooltip-mode -1)        ; Disable tooltips
@@ -40,6 +44,9 @@
 (tool-bar-mode -1)       ; Disable the tool bar
 (scroll-bar-mode -1)     ; Disable the scrollbar
 (setq visible-bell nil)  ; Visible bell disabled
+
+(set-frame-parameter (selected-frame) 'alpha '(97 . 100))
+(add-to-list 'default-frame-alist '(alpha . (90 . 90)))
 
 (column-number-mode)                           ; Enable column number
 (global-display-line-numbers-mode t)           ; Enable line numbers
@@ -50,9 +57,10 @@
                 treemacs-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-(set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 125)
-(set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 125)
-(set-face-attribute 'variable-pitch nil :font "Overpass" :height 140 :weight 'regular)
+(defun ha/setup-font-main ()
+  (set-face-attribute 'default nil :font "JetBrainsMono Nerd Font" :height 125 :weight 'light)
+  (set-face-attribute 'fixed-pitch nil :font "JetBrainsMono Nerd Font" :height 125 :weight 'light)
+  (set-face-attribute 'variable-pitch nil :font "Iosevka Aile" :height 140 :weight 'light))
 
 (use-package all-the-icons
   :ensure t)
@@ -62,7 +70,7 @@
 
 (use-package doom-themes
   :config
-  (load-theme 'doom-dracula t))
+  (load-theme 'doom-palenight t))
 
 (use-package doom-modeline
   :ensure t
@@ -72,9 +80,11 @@
     (doom-modeline-battery t)))
 
 (use-package which-key
-  :init (which-key-mode)
+  :defer 0
+  ;; :init (which-key-mode)
   :diminish which-key-mode
   :config
+  (which-key-mode)
   (setq which-key-idle-delay 0.3))
 
 (use-package swiper)
@@ -96,6 +106,7 @@
   (setq ivy-initial-inputs-alist nil))
 
 (use-package ivy-rich
+  :after ivy
   :init
   (ivy-rich-mode 1))
 
@@ -110,7 +121,9 @@
   :config
   (evil-mode 1)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line))
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal))
 
 (use-package evil-collection
     :after evil
@@ -127,7 +140,7 @@
 (ha/leader-keys
  "b"  '(:ignore t :which-key "buffer")
  "bs" '(save-buffer :which-key "save")
- "bk" '(kill-buffer :which-key "kill"))
+ "bk" '(kill-current-buffer :which-key "kill"))
 
 (ha/leader-keys
  "w"  '(:ignore t :which-key "window")
@@ -148,7 +161,8 @@
  "t"  '(:ignore t :which-key "toggles")
  "tt" '(counsel-load-theme :which-key "Choose theme"))
 
-(use-package hydra)
+(use-package hydra
+  :defer t)
 
 (defhydra hydra-text-scale (:timeout 4)
   "scale text"
@@ -180,9 +194,10 @@
                   (org-level-6 . 1.15)
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.05)))
-    (set-face-attribute (car face) nil :font "Overpass" :weight 'bold :height (cdr face)))
+    (set-face-attribute (car face) nil :font "Overpass" :weight 'medium :height (cdr face)))
 
 ;; Fonts in org
+  (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
   (set-face-attribute 'org-block nil    :foreground nil :inherit 'fixed-pitch)
   (set-face-attribute 'org-table nil    :inherit 'fixed-pitch)
   (set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
@@ -196,6 +211,7 @@
   (set-face-attribute 'line-number-current-line nil :inherit 'fixed-pitch))
 
 (use-package org
+  :commands (org-capture org-agenda)
   :hook (org-mode . ha/org-mode-setup)
   :config
   (setq org-ellipsis " ▼ "
@@ -203,24 +219,25 @@
   (ha/org-font-setup))
 
 (use-package org-bullets
-  :after org
   :hook (org-mode . org-bullets-mode)
   :custom
   (setq org-bullets-list '("◉" "●" "○" "◆" "●" "○" "◆")))
 
 (use-package org-make-toc)
 
-(require 'org-tempo)
-(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-(add-to-list 'org-structure-template-alist '("python" . "src python"))
-(add-to-list 'org-structure-template-alist '("rs" . "src rust"))
-(add-to-list 'org-structure-template-alist '("cf" . "src conf"))
+(with-eval-after-load 'org
+  (require 'org-tempo)
+  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("python" . "src python"))
+  (add-to-list 'org-structure-template-alist '("rs" . "src rust"))
+  (add-to-list 'org-structure-template-alist '("cf" . "src conf")))
 
-(org-babel-do-load-languages
-  'org-babel-load-languages
-  '((emacs-lisp . t)
-    (python . t)))
+(with-eval-after-load 'org
+  (org-babel-do-load-languages
+    'org-babel-load-languages
+    '((emacs-lisp . t)
+      (python . t))))
 
 ;; Automatically tangle emacs.org whenever it is saved.
 (defun ha/org-babel-tangle-config ()
@@ -239,6 +256,56 @@
 (use-package visual-fill-column
   :hook (org-mode . ha/org-mode-visual-fill))
 
+(use-package org-present)
+
+;; Tweak our font sizes during present
+(defun ha/org-present-start ()
+  (setq-local face-remapping-alist '((default (:height 1.5) variable-pitch)
+                                     (header-line (:height 4.0) variable-pitch)
+                                     (org-document-title (:height 1.75) org-document-title)
+                                     (org-code (:height 1.55) org-code)
+                                     (org-verbatim (:height 1.55) org-verbatim)
+                                     (org-block (:height 1.25) org-block)
+                                     (org-block-begin-line (:height 0.7) org-block)))
+  (setq header-line-format " ")
+  (display-line-numbers-mode -1))
+
+;; Undo tweaks 
+(defun ha/org-present-end ()
+  (setq-local face-remapping-alist '((default variable-pitch default)))
+  (setq header-line-format nil)
+  (display-line-numbers-mode nil))
+
+;; Preparing the slides
+(defun ha/org-present-prepare-slide (buffer-name heading)
+  (org-overview)
+  (org-show-entry)
+  (org-show-children))
+
+(add-hook 'org-present-after-navigate-functions 'ha/org-present-prepare-slide)
+(add-hook 'org-present-mode-hook 'ha/org-present-start)
+(add-hook 'org-present-mode-quit-hook 'ha/org-present-end)
+
+(use-package org-roam
+  :ensure t
+  :custom
+  (org-roam-directory "~/org/roam")
+  :config
+  (org-roam-setup))
+
+;; Keybinds
+(ha/leader-keys
+ "n"   '(:ignore t :which-key "notes")
+ "nr"  '(:ignore t :which-key "roam")
+ "nrt" '(org-roam-buffer-toggle :which-key "buffer toggle")
+ "nrf" '(org-roam-node-find :which-key "find node")
+ "nri" '(org-roam-node-insert :which-key "insert node")
+ ;; heading
+ "nrh" '(:ignore t :which-key "heading")
+ "nrhi" '(org-id-get-create :which-key "insert")
+ "nrha" '(org-roam-alias-add :which-key "add alias")
+ "nrhf" '(org-find-entry-with-id :which-key "find"))
+
 (setq-default tab-width 2)
 (setq-default evil-shift-width tab-width)
 
@@ -248,6 +315,7 @@
   :bind ("M-/" . evilnc-comment-or-uncomment-lines))
 
 (use-package magit
+  :commands (magit-status magit-commit magit-push)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
@@ -256,10 +324,11 @@
  "gg" '(magit-status :which-key "status")
  "gs" '(magit-status :which-key "status")
  "gc" '(magit-commit :which-key "commit")
- "gp" '(magit-commit :which-key "push"))
+ "gp" '(magit-push :which-key "push"))
 
 ;; TODO, setup
-(use-package forge)
+(use-package forge
+  :after magit)
 
 (use-package projectile
   :diminish projectile-mode
@@ -273,6 +342,7 @@
   (setq projectile-switch-project-action #'projectile-dired))
 
 (use-package counsel-projectile
+  :after projectile
   :config (counsel-projectile-mode))
 
 (defun ha/lsp-mode-setup ()
@@ -289,7 +359,8 @@
 
 ;; Enable debugger
 (use-package dap-mode
-  :after lsp-mode)
+  ;; :after lsp-mode
+  :commands dap-debug)
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
@@ -305,7 +376,8 @@
  "os" '(lsp-treemacs-symbols :which-key "LSP treemacs symols")
  )
 
-(use-package lsp-ivy)
+(use-package lsp-ivy
+  :after lsp)
 
 (use-package rust-mode
   :mode "\\.rs\\'"
@@ -346,6 +418,7 @@
   (setq-default web-mode-attribute-indent-offset 2))
 
 (use-package helpful
+  :commands (helpful-callable helpful-variable helpful-command helpful-key)
   :custom
   (counsel-describe-function-function #'helpful-callable)
   (counsel-describe-variable-function #'helpful-variable)
@@ -394,3 +467,12 @@
           ("REVIEW"      font-lock-keyword-face bold)
           ("NOTE"        success bold)
           ("DEPRECATED"  font-lock-doc-face bold))))
+
+(setq gc-cons-threshold (* 2 1000 1000))
+
+;; Main fonts
+(add-hook 'after-init-hook 'ha/setup-font-main)
+(add-hook 'server-after-make-frame-hook 'ha/setup-font-main)
+;; Fonts in org mode 
+(add-hook 'after-init-hook 'ha/org-font-setup)
+(add-hook 'server-after-make-frame-hook 'ha/org-font-setup)
