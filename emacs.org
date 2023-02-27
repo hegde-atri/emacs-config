@@ -355,8 +355,12 @@ Easy leader keymaps using =general.el=.
   (ha/leader-keys
    "b"  '(:ignore t :which-key "buffer")
    "bs" '(save-buffer :which-key "save")
-   "bk" '(kill-current-buffer :which-key "kill"))
-  
+   "bk" '(kill-current-buffer :which-key "kill")
+   "bi" '(ibuffer :which-key "list")
+   "bj" '(next-buffer :which-key "next buffer")
+   "bk" '(previous-buffer :which-key "prev buffer")
+  )
+
 #+end_src
 
 *** Window commands
@@ -932,14 +936,19 @@ Requires the typescript-language-server to be installed.
 
 I like having workspaces as I often will have to quickly switch projects. Without
 having kill my other buffers, e.g. allows me to seperate my notes from my projects.
-TODO
+TODO: Setup doom emacs like workspaces
 
 #+begin_src emacs-lisp
 
   (use-package persp-mode
     :config
     (persp-mode 1))
-  
+
+  (ha/leader-keys
+   "TAB"  '(:ignore t :which-key "workspaces")
+   "TAB n" '(persp-add-new :which-key "add")
+  )
+
 #+end_src
 
 *** Dashboard

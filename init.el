@@ -140,7 +140,11 @@
 (ha/leader-keys
  "b"  '(:ignore t :which-key "buffer")
  "bs" '(save-buffer :which-key "save")
- "bk" '(kill-current-buffer :which-key "kill"))
+ "bk" '(kill-current-buffer :which-key "kill")
+ "bi" '(ibuffer :which-key "list")
+ "bj" '(next-buffer :which-key "next buffer")
+ "bk" '(previous-buffer :which-key "prev buffer")
+)
 
 (ha/leader-keys
  "w"  '(:ignore t :which-key "window")
@@ -485,6 +489,11 @@
 (use-package persp-mode
   :config
   (persp-mode 1))
+
+(ha/leader-keys
+ "TAB"  '(:ignore t :which-key "workspaces")
+ "TAB n" '(persp-add-new :which-key "add")
+)
 
 (use-package dashboard
   :config
