@@ -138,12 +138,19 @@
     :global-prefix "C-SPC"))
 
 (ha/leader-keys
+ "."  '(counsel-find-file :which-key "find file")
+ "q"  '(:ignore t :which-key "emacs")
+ "qq" '(save-buffers-kill-terminal :which-key "save and min")
+ "qc" '(save-buffers-kill-emacs :which-key "save and close")
+)
+
+(ha/leader-keys
  "b"  '(:ignore t :which-key "buffer")
  "bs" '(save-buffer :which-key "save")
  "bk" '(kill-current-buffer :which-key "kill")
  "bi" '(ibuffer :which-key "list")
- "bj" '(next-buffer :which-key "next buffer")
- "bk" '(previous-buffer :which-key "prev buffer")
+ "bn" '(next-buffer :which-key "next buffer")
+ "bu" '(previous-buffer :which-key "prev buffer")
 )
 
 (defun toggle-window-split ()
@@ -211,6 +218,7 @@
   (visual-line-mode 1)
   ;; Enlarge latex preview
   (plist-put org-format-latex-options :scale 1.6)
+  (setq org-return-follows-link t)
   (setq evil-auto-indent nil))
 
 ;; Replace list hyphen with dot.
@@ -332,16 +340,16 @@
   (org-roam-capture-templates
     '(("d" "default" plain
        "%?"
-       :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n")
+       :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+date: %U\n#+startup: latexpreview\n")
        :unnarrowed t)
       ("m" "module" plain
        ;; (file "<path to template>")
        "\n* Module details\n\n- %^{Module code}\n- Semester: %^{Semester}\n\n* %?"
-       :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+       :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+startup: latexpreview\n")
        :unnarrowed t)
       ("b" "book notes" plain
        "\n* Source\n\n- Author: %^{Author}\n- Title: ${title}\n- Year: %^{Year}\n\n%?"
-       :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+       :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+startup: latexpreview\n")
        :unnarrowed t)
     )
   )
@@ -538,7 +546,7 @@
 (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 
 (use-package hl-todo
-  :hook (prog-mode . hl-todo-mode)
+  :hook ((prog-mode . hl-todo-mode) (org-mode . hl-todo-mode))
   :config
   (setq hl-todo-highlight-punctuation ":"
         hl-todo-keyword-faces
