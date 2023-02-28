@@ -146,6 +146,31 @@
  "bk" '(previous-buffer :which-key "prev buffer")
 )
 
+(defun toggle-window-split ()
+(interactive)
+(if (= (count-windows) 2)
+    (let* ((this-win-buffer (window-buffer))
+     (next-win-buffer (window-buffer (next-window)))
+     (this-win-edges (window-edges (selected-window)))
+     (next-win-edges (window-edges (next-window)))
+     (this-win-2nd (not (and (<= (car this-win-edges)
+         (car next-win-edges))
+           (<= (cadr this-win-edges)
+         (cadr next-win-edges)))))
+     (splitter
+      (if (= (car this-win-edges)
+       (car (window-edges (next-window))))
+    'split-window-horizontally
+  'split-window-vertically)))
+(delete-other-windows)
+(let ((first-win (selected-window)))
+  (funcall splitter)
+  (if this-win-2nd (other-window 1))
+  (set-window-buffer (selected-window) this-win-buffer)
+  (set-window-buffer (next-window) next-win-buffer)
+  (select-window first-win)
+  (if this-win-2nd (other-window 1))))))
+
 (ha/leader-keys
  "w"  '(:ignore t :which-key "window")
  "ws" '(split-window-vertically :which-key "vertical split")
@@ -159,7 +184,9 @@
  "wL" '(evil-window-decrease-height :which-key "decrease height")
  "wJ" '(evil-window-increase-width :which-key "increase width")
  "wK" '(evil-window-decrease-width :which-key "decrease width")
- "w=" '(balance-windows :which-key "balance windows"))
+ "w=" '(balance-windows :which-key "balance windows")
+ "ww" '(toggle-window-split :which-key "change split")
+)
 
 (ha/leader-keys
  "t"  '(:ignore t :which-key "toggles")
@@ -182,6 +209,8 @@
   ;; (variable-pitch-mode 1)
   (auto-fill-mode 0)
   (visual-line-mode 1)
+  ;; Enlarge latex preview
+  (plist-put org-format-latex-options :scale 1.6)
   (setq evil-auto-indent nil))
 
 ;; Replace list hyphen with dot.
@@ -233,14 +262,20 @@
   (require 'org-tempo)
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist '("me" . "src mermaid :file d"))
   (add-to-list 'org-structure-template-alist '("python" . "src python"))
   (add-to-list 'org-structure-template-alist '("rs" . "src rust"))
   (add-to-list 'org-structure-template-alist '("cf" . "src conf")))
+
+;; (use-package ob-mermaid)
+;; (setq ob-mermaid-cli-path "/usr/bin/mmdc")
 
 (with-eval-after-load 'org
   (org-babel-do-load-languages
     'org-babel-load-languages
     '((emacs-lisp . t)
+      ;;(mermaid .t)
+      ;;(scheme .t)
       (python . t))))
 
 ;; Automatically tangle emacs.org whenever it is saved.
