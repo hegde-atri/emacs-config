@@ -37,6 +37,7 @@ This document contains my Emacs Configuration which is a main part of my workflo
   - [[#keymaps-with-hydra][Keymaps with Hydra]]
 - [[#org-mode][Org mode]]
   - [[#base-config][Base config]]
+  - [[#org-agenda][Org-agenda]]
   - [[#org-bullets][Org bullets]]
   - [[#org-toc][Org TOC]]
   - [[#org-templates][Org templates]]
@@ -510,6 +511,32 @@ Configuring the org package.
           org-hide-emphasis-markers t)
     (ha/org-font-setup))
 
+#+end_src
+
+** Org-agenda
+
+Org agenda prefs. TODO: org-ql.
+
+#+begin_src emacs-lisp
+
+  (setq-default org-agenda-files '("~/org"))
+  ;; (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
+
+#+end_src
+
+Keybinds for org agenda.
+
+#+begin_src emacs-lisp
+
+  (ha/leader-keys
+   "o"   '(:ignore t :which-key "org")
+   "oa"  '(org-agenda :which-key "org-agenda")
+   "od"  '(org-time-stamp :which-key "time stamp")
+   "op" '(:ignore t :which-key "priority")
+   "opp" '(org-priority :which-key "priority")
+   "opu" '(org-priority-up :which-key "priority")
+   "opd" '(org-priority-down :which-key "priority")
+  )
 #+end_src
 
 ** Org bullets

@@ -259,6 +259,19 @@
         org-hide-emphasis-markers t)
   (ha/org-font-setup))
 
+(setq-default org-agenda-files '("~/org"))
+;; (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
+
+(ha/leader-keys
+ "o"   '(:ignore t :which-key "org")
+ "oa"  '(org-agenda :which-key "org-agenda")
+ "od"  '(org-time-stamp :which-key "time stamp")
+ "op" '(:ignore t :which-key "priority")
+ "opp" '(org-priority :which-key "priority")
+ "opu" '(org-priority-up :which-key "priority")
+ "opd" '(org-priority-down :which-key "priority")
+)
+
 (use-package org-bullets
   :hook (org-mode . org-bullets-mode)
   :custom
