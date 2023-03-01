@@ -519,8 +519,8 @@ Org agenda prefs. TODO: org-ql.
 
 #+begin_src emacs-lisp
 
-  (setq-default org-agenda-files '("~/org"))
-  ;; (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
+  ;; (setq-default org-agenda-files '("~/org"))
+  (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
 
 #+end_src
 
@@ -557,7 +557,9 @@ Replace =*= with different bullets.
 A plugin that generates a TOC for org documents on save.
 
 #+begin_src emacs-lisp
+
   (use-package org-make-toc)
+
 #+end_src
 
 ** Org templates

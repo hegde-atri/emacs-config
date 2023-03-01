@@ -259,8 +259,8 @@
         org-hide-emphasis-markers t)
   (ha/org-font-setup))
 
-(setq-default org-agenda-files '("~/org"))
-;; (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
+;; (setq-default org-agenda-files '("~/org"))
+(setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
 
 (ha/leader-keys
  "o"   '(:ignore t :which-key "org")
