@@ -115,7 +115,7 @@
 (use-package evil
   :init
   (setq evil-want-integration t)
-  (setq evil-keybinding nil)
+  (setq evil-keybinding t)
   (setq evil-want-keybinding nil)
   (setq evil-want-C-u-scroll t)
   :config
@@ -261,6 +261,16 @@
 
 ;; (setq-default org-agenda-files '("~/org"))
 (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
+
+;; Better priorities symbols
+(use-package org-fancy-priorities
+  :hook (org-mode .org-fancy-priorities-mode)
+  :config
+  (setq org-fancy-priorities-list '((?A . "❗")
+                                    (?B . "⚡")
+                                    (?C . "⬆")
+  ))
+)
 
 (ha/leader-keys
  "o"   '(:ignore t :which-key "org")
@@ -578,3 +588,16 @@
 ;; Fonts in org mode 
 (add-hook 'after-init-hook 'ha/org-font-setup)
 (add-hook 'server-after-make-frame-hook 'ha/org-font-setup)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(org-agenda-files
+   '("/home/mizuuu/org/roam/daily/2023-03-01.org" "/home/mizuuu/org/roam/daily/2023-03-02.org" "/home/mizuuu/org/roam/20230226221300-semester_2_2023.org" "/home/mizuuu/org/roam/20230226221449-introduction_to_algorithms.org" "/home/mizuuu/org/roam/20230227140855-machines_and_intelligence.org" "/home/mizuuu/org/roam/20230228091508-devices_and_networks.org" "/home/mizuuu/org/roam/20230228091649-internetworking_devices.org" "/home/mizuuu/org/roam/20230228100649-foundation_of_computer_science.org" "/home/mizuuu/org/roam/20230228100752-matrices_and_systems_of_linear_equations.org" "/home/mizuuu/org/roam/20230228151051-quicksort_and_randomised_algorithms.org" "/home/mizuuu/org/roam/20230228160201-searching_algorithms.org" "/home/mizuuu/org/roam/20230228160629-depth_first_search.org" "/home/mizuuu/org/roam/20230228160659-breadth_first_search.org" "/home/mizuuu/org/roam/20230228160718-progressive_deepening_search.org" "/home/mizuuu/org/roam/20230228160735-search_frontiers.org" "/home/mizuuu/org/roam/20230228160752-branch_and_bound_search.org" "/home/mizuuu/org/roam/20230228160806-greedy_search.org" "/home/mizuuu/org/schedule.org")))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
